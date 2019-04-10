@@ -8,35 +8,29 @@ let app = new Vue({
   },
   data: {
     canMerge: false,
-    canDivide: false,
+    dividerValue: 50,
     selectedDataPoints: [],
-    series: [{
-      name: 'Marine Sprite',
-      data: [44]
-    }, {
-      name: 'Striking Calf',
-      data: [53]
-    }, {
-      name: 'Tank Picture',
-      data: [12]
-    }, {
-      name: 'Bucket Slope',
-      data: [9]
-    }, {
-      name: 'Reborn Kid',
-      data: [25]
-    }],
+    rangeValues: [100],
+    series: [],
     chartOptions: {
       chart: {
         stacked: true,
-        // stackType: '100%'
+        stackType: '100%',
+        toolbar: {
+          show: false
+        },  
         events: {
-          dataPointMouseEnter (event, chartContext, config){
-            console.log(`event: dataPointMouseEnter = ${JSON.stringify(event)}`);
-          },
           dataPointSelection (event, chartContext, config){
-            console.log(`event: dataPointSelection event = ${JSON.stringify(event)}`);
-            app.toggleDataPoints(parseInt(config.seriesIndex));
+            const ps = [];
+            config.selectedDataPoints.forEach((element, index) => {
+              if(element && element.length > 0){
+                ps.push(index);
+              }
+            });
+            if(config.selectedIndex == 0){
+              config.selectedDataPoints = [];
+            }
+            app.selectedDataPoints = ps;
           }
         }
       },
@@ -49,16 +43,19 @@ let app = new Vue({
         width: 1,
         colors: ['#fff']
       },
-
+      labels: [1,2,100],
       title: {
         text: '100% Stacked Bar'
       },
       xaxis: {
+        show: true,
         categories: [2008],
       },
-
+      yaxis: {
+        show: true,
+      },
       tooltip: {
-        enabled: true,
+        enabled: false,
         x: {
           show: false
         },
@@ -82,8 +79,8 @@ let app = new Vue({
           allowMultipleDataPointsSelection: true
         }
       },
-
       legend: {
+        show: true,
         position: 'top',
         horizontalAlign: 'left',
         offsetX: 40,
@@ -96,49 +93,45 @@ let app = new Vue({
       }
     }
   },
+  created() {
+    this.updateSeries();
+  },
   methods: {
-    clearAnnotations (){
-      app.$refs.exampleChart.clearAnnotations();
+    canDivide(){
+      return this.rangeValues.indexOf(this.dividerValue) < 0;
     },
-    toggleDataPoints (selectedIndex){
-      console.log(JSON.stringify(this.selectedDataPoints));
-      console.log(app.$refs);
-      const foundIndex = this.selectedDataPoints.indexOf(selectedIndex);
-      if(foundIndex < 0){
-        this.selectedDataPoints.push(selectedIndex);
-      }
-      else{
-        console.log(app.$refs);
-        this.selectedDataPoints.splice(foundIndex, 1);
-        this.clearAnnotations();
-      }
-      this.selectedDataPoints.sort();
+    updateSeries (){
+      this.series = this.rangeValues.map((v, i) => {
+        const min = (i == 0) ? 0 : this.rangeValues[i-1];
+        const max = v;
+        const val = (i == 0) ? v : v - this.rangeValues[i-1];
+        return { name: `${min}以上 ${max}未満`, data: [val] };
+      })
     },
     mergeDataPoints(){
-      const ps = this.selectedDataPoints;
-      const dataTotal = parseInt(this.series[ps[0]].data[0]) + parseInt(this.series[ps[1]].data[0]);
-      this.series[ps[0]].data[0] = dataTotal;
-      this.series.splice(ps[1], 1);
+      this.rangeValues.splice(this.selectedDataPoints[0], 1);
+      this.updateSeries();
     },
     divideDataPoint(){
-      const selectedIndex = this.selectedDataPoints[0];
-      const selectedValue = this.series[selectedIndex].data[0];
-      this.series.splice(selectedIndex+1, 0, {name: 'new data', data: [parseInt(selectedValue/2)]})
-      this.$set(this.series[selectedIndex].data, 0, [parseInt(selectedValue/2)]);
+      let values = this.rangeValues;
+      values.push(this.dividerValue);
+      values = values.sort((a,b)=>{
+        if(a < b) return -1;
+        if(a > b) return 1;
+        return 0;
+      });
+      this.rangeValues = values;
+      this.updateSeries();
     }
   },
   watch: {
     selectedDataPoints (ps){
-      console.log('selectedDataPoints');
       if(ps.length == 2 && ps[1] - ps[0] == 1){
         this.canMerge = true;
-        this.canDivide = false;
       } else if (ps.length == 1){
         this.canMerge = false;
-        this.canDivide = true;
       } else{
         this.canMerge = false;
-        this.canDivide = false;
       }
     }
   }

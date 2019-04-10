@@ -12,7 +12,9 @@
       <div id="chart">
         <apexchart ref="exampleChart" type=bar height=350 :options="chartOptions" :series="series" />
       </div>
-      <button v-if="canDivide" @click="divideDataPoint()">分割する</button>
+      
+      <input type="number" v-model="dividerValue">
+      <button :disabled="!canDivide()" @click="divideDataPoint()">分割する</button>
       <button v-if="canMerge" @click="mergeDataPoints()">結合する</button>
     </div>
     <script src="./index.js"></script>
