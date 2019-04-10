@@ -2,14 +2,14 @@ Vue.use(VueApexCharts)
 Vue.component('apexchart', VueApexCharts)
 
 let app = new Vue({
-  el: '#chart',
+  el: '#app',
   components: {
     apexchart: VueApexCharts,
   },
   data: {
-    selectedDataPoints: [-1],
-    seriesIndex: -1,
-    dataPointIndex: -1,
+    canMerge: false,
+    canDivide: false,
+    selectedDataPoints: [],
     series: [{
       name: 'Marine Sprite',
       data: [44]
@@ -31,16 +31,12 @@ let app = new Vue({
         stacked: true,
         // stackType: '100%'
         events: {
-          // click: function(ctx){
-          //   console.log(`event: click = ${JSON.stringify(ctx)}`);
-          // },
-          dataPointSelection: function(event, chartContext, config){
+          dataPointMouseEnter (event, chartContext, config){
+            console.log(`event: dataPointMouseEnter = ${JSON.stringify(event)}`);
+          },
+          dataPointSelection (event, chartContext, config){
             console.log(`event: dataPointSelection event = ${JSON.stringify(event)}`);
-            const keys = Object.keys(config.selectedDataPoints);
-            const ps = keys.map(function(k){return parseInt(k);})
-            console.log(`ps = ${ps}`);
-            console.log(chartContext);
-            app.selectedDataPoints = ps;
+            app.toggleDataPoints(parseInt(config.seriesIndex));
           }
         }
       },
@@ -62,7 +58,21 @@ let app = new Vue({
       },
 
       tooltip: {
-        enabled: false
+        enabled: true,
+        x: {
+          show: false
+        },
+        y: {
+          title: {
+            formatter: function(){
+              return '';
+            }
+          },
+          formatter: function(){
+            return 'separate?';
+          }
+        },
+        marker: false
       },
       fill: {
         opacity: 1
@@ -86,13 +96,49 @@ let app = new Vue({
       }
     }
   },
+  methods: {
+    clearAnnotations (){
+      app.$refs.exampleChart.clearAnnotations();
+    },
+    toggleDataPoints (selectedIndex){
+      console.log(JSON.stringify(this.selectedDataPoints));
+      console.log(app.$refs);
+      const foundIndex = this.selectedDataPoints.indexOf(selectedIndex);
+      if(foundIndex < 0){
+        this.selectedDataPoints.push(selectedIndex);
+      }
+      else{
+        console.log(app.$refs);
+        this.selectedDataPoints.splice(foundIndex, 1);
+        this.clearAnnotations();
+      }
+      this.selectedDataPoints.sort();
+    },
+    mergeDataPoints(){
+      const ps = this.selectedDataPoints;
+      const dataTotal = parseInt(this.series[ps[0]].data[0]) + parseInt(this.series[ps[1]].data[0]);
+      this.series[ps[0]].data[0] = dataTotal;
+      this.series.splice(ps[1], 1);
+    },
+    divideDataPoint(){
+      const selectedIndex = this.selectedDataPoints[0];
+      const selectedValue = this.series[selectedIndex].data[0];
+      this.series.splice(selectedIndex+1, 0, {name: 'new data', data: [parseInt(selectedValue/2)]})
+      this.$set(this.series[selectedIndex].data, 0, [parseInt(selectedValue/2)]);
+    }
+  },
   watch: {
-    selectedDataPoints: function(ps){
+    selectedDataPoints (ps){
       console.log('selectedDataPoints');
       if(ps.length == 2 && ps[1] - ps[0] == 1){
-        const dataTotal = this.series[ps[0]].data[0] + this.series[ps[1]].data[0];
-        this.series[ps[0]].data[0] = dataTotal;
-        this.series.splice(ps[1], 1);
+        this.canMerge = true;
+        this.canDivide = false;
+      } else if (ps.length == 1){
+        this.canMerge = false;
+        this.canDivide = true;
+      } else{
+        this.canMerge = false;
+        this.canDivide = false;
       }
     }
   }

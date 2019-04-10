@@ -8,8 +8,12 @@
     <script src="https://cdn.jsdelivr.net/npm/vue-apexcharts"></script>
   </head>
   <body>
-    <div id="chart">
-      <apexchart type=bar height=350 :options="chartOptions" :series="series" />
+    <div id="app">
+      <div id="chart">
+        <apexchart ref="exampleChart" type=bar height=350 :options="chartOptions" :series="series" />
+      </div>
+      <button v-if="canDivide" @click="divideDataPoint()">分割する</button>
+      <button v-if="canMerge" @click="mergeDataPoints()">結合する</button>
     </div>
     <script src="./index.js"></script>
   </body>
