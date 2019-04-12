@@ -8,6 +8,7 @@ let app = new Vue({
   },
   data: {
     canMerge: false,
+    thumbX: 0,
     dividerValue: 50,
     selectedDataPoints: [],
     rangeValues: [100],
@@ -26,6 +27,7 @@ let app = new Vue({
             const bar_width = event.view.innerWidth - MAGIC_OFFSET;
             const dividerValue = Math.floor(100 * bar_x / bar_width);
             app.clickedDividerValue(dividerValue);
+            app.thumbX = event.offsetX;
             const ps = [];
             config.selectedDataPoints.forEach((element, index) => {
               if(element && element.length > 0){
@@ -81,7 +83,7 @@ let app = new Vue({
       },
       states: {
         active: {
-          allowMultipleDataPointsSelection: true
+          allowMultipleDataPointsSelection: false
         }
       },
       legend: {
