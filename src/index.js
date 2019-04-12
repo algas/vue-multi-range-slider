@@ -21,6 +21,11 @@ let app = new Vue({
         },  
         events: {
           dataPointSelection (event, chartContext, config){
+            const MAGIC_OFFSET = 34;
+            const bar_x = event.x - MAGIC_OFFSET;
+            const bar_width = event.view.innerWidth - MAGIC_OFFSET;
+            const dividerValue = Math.floor(100 * bar_x / bar_width);
+            app.clickedDividerValue(dividerValue);
             const ps = [];
             config.selectedDataPoints.forEach((element, index) => {
               if(element && element.length > 0){
@@ -49,7 +54,7 @@ let app = new Vue({
       },
       xaxis: {
         show: true,
-        categories: [2008],
+        categories: [''],
       },
       yaxis: {
         show: true,
@@ -83,7 +88,6 @@ let app = new Vue({
         show: true,
         position: 'top',
         horizontalAlign: 'left',
-        offsetX: 40,
         onItemClick: {
           toggleDataSeries: false
         },
@@ -97,6 +101,9 @@ let app = new Vue({
     this.updateSeries();
   },
   methods: {
+    clickedDividerValue(val){
+      this.dividerValue = val;
+    },
     canDivide(){
       return this.rangeValues.indexOf(this.dividerValue) < 0;
     },
