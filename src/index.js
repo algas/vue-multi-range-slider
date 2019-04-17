@@ -13,6 +13,8 @@ let app = new Vue({
     selectedDataPoints: [],
     rangeValues: [100],
     series: [],
+    offsetX: 0,
+    gridWidth: 1,
     chartOptions: {
       chart: {
         stacked: true,
@@ -21,13 +23,14 @@ let app = new Vue({
           show: false
         },  
         events: {
+          mounted(chartContext, config){
+            app.offsetX = config.globals.translateX;
+            app.gridWidth = config.globals.gridWidth;
+          },
           dataPointSelection (event, chartContext, config){
-            const MAGIC_OFFSET = 34;
-            const bar_x = event.x - MAGIC_OFFSET;
-            const bar_width = event.view.innerWidth - MAGIC_OFFSET;
-            const dividerValue = Math.floor(100 * bar_x / bar_width);
+            const dividerValue = Math.floor((event.x - app.offsetX) * 100 / app.gridWidth);
             app.clickedDividerValue(dividerValue);
-            app.thumbX = event.offsetX;
+            app.updateThumbPosition(event.offsetX);
             const ps = [];
             config.selectedDataPoints.forEach((element, index) => {
               if(element && element.length > 0){
@@ -131,6 +134,12 @@ let app = new Vue({
       });
       this.rangeValues = values;
       this.updateSeries();
+    },
+    changeDivider(){
+      this.updateThumbPosition(Math.floor(this.offsetX + this.dividerValue * this.gridWidth / 100));
+    },
+    updateThumbPosition(x){
+      this.thumbX = x;
     }
   },
   watch: {

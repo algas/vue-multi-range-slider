@@ -17,7 +17,7 @@
         <div class="thumb"></div>
       </div>
       <div class="buttons">
-        <input type="number" v-model="dividerValue">
+        <input type="number" v-model="dividerValue" @change="changeDivider()">
         <button :disabled="!canDivide()" @click="divideDataPoint()">分割する</button>
         <button v-if="canMerge" @click="mergeDataPoints()">結合する</button>  
       </div>
