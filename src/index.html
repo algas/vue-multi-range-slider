@@ -18,8 +18,8 @@
       </div>
       <div class="buttons">
         <input type="number" v-model="dividerValue" @change="changeDivider()">
-        <button :disabled="!canDivide()" @click="divideDataPoint()">分割する</button>
-        <button v-if="canMerge" @click="mergeDataPoints()">結合する</button>  
+        <button :disabled="!canDivide" @click="divideDataPoint()">分割する</button>
+        <button :disabled="!canMerge" @click="mergeDataPoints()">結合する</button>
       </div>
     </div>
     <script src="./index.js"></script>

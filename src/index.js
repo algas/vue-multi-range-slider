@@ -7,6 +7,7 @@ let app = new Vue({
     apexchart: VueApexCharts,
   },
   data: {
+    canDivide: true,
     canMerge: false,
     thumbX: 0,
     dividerValue: 50,
@@ -109,8 +110,11 @@ let app = new Vue({
     clickedDividerValue(val){
       this.dividerValue = val;
     },
-    canDivide(){
-      return this.rangeValues.indexOf(this.dividerValue) < 0;
+    updateCanDivide(){
+      this.canDivide = !this.rangeValues.includes(this.dividerValue);
+    },
+    updateCanMerge(){
+      this.canMerge = this.rangeValues.length > 1 && this.rangeValues.includes(this.dividerValue);
     },
     updateSeries (){
       this.series = this.rangeValues.map((v, i) => {
@@ -118,10 +122,16 @@ let app = new Vue({
         const max = v;
         const val = (i == 0) ? v : v - this.rangeValues[i-1];
         return { name: `${min}以上 ${max}未満`, data: [val] };
-      })
+      });
+      this.updateCanDivide();
+      this.updateCanMerge();
     },
     mergeDataPoints(){
-      this.rangeValues.splice(this.selectedDataPoints[0], 1);
+      if(this.dividerValue == 100){
+        return
+      }
+      const index = this.rangeValues.indexOf(this.dividerValue);
+      this.rangeValues.splice(index, 1);
       this.updateSeries();
     },
     divideDataPoint(){
@@ -137,20 +147,24 @@ let app = new Vue({
     },
     changeDivider(){
       this.updateThumbPosition(Math.floor(this.offsetX + this.dividerValue * this.gridWidth / 100));
+      this.updateCanDivide();
+      this.updateCanMerge();
     },
     updateThumbPosition(x){
       this.thumbX = x;
+      this.updateCanDivide();
+      this.updateCanMerge();
     }
   },
   watch: {
-    selectedDataPoints (ps){
-      if(ps.length == 2 && ps[1] - ps[0] == 1){
-        this.canMerge = true;
-      } else if (ps.length == 1){
-        this.canMerge = false;
-      } else{
-        this.canMerge = false;
-      }
-    }
+    // selectedDataPoints (ps){
+    //   if(ps.length == 2 && ps[1] - ps[0] == 1){
+    //     this.canMerge = true;
+    //   } else if (ps.length == 1){
+    //     this.canMerge = false;
+    //   } else{
+    //     this.canMerge = false;
+    //   }
+    // }
   }
 });
